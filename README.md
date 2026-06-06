@@ -1,21 +1,72 @@
-# Next.js template
+# QR Code Generator
 
-This is a Next.js template with shadcn/ui.
+A professional, lightweight QR code generator built with Next.js, React, Tailwind CSS, and shadcn/ui. Create clean QR codes for links or text, customize the output, and export production-ready PNG or SVG files directly from the browser.
 
-## Adding components
+## Features
 
-To add components to your app, run the following command:
+- Live QR code preview as you type
+- Text and URL support
+- Foreground and background color controls
+- Adjustable output size and margin
+- Error correction levels: Low, Medium, Quartile, and High
+- PNG and SVG export
+- Copy PNG data URL to clipboard
+- Responsive light/dark interface
+- Client-side generation with no backend or data storage
+
+## Tech Stack
+
+- Next.js 16 App Router
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- shadcn/ui with Base UI primitives
+- Phosphor Icons
+- qrcode
+
+## Getting Started
+
+Install dependencies:
 
 ```bash
-npx shadcn@latest add button
+npm install
 ```
 
-This will place the ui components in the `components` directory.
+Run the development server:
 
-## Using components
-
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button";
+```bash
+npm run dev
 ```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Scripts
+
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run typecheck
+```
+
+## Project Structure
+
+```text
+app/
+  layout.tsx
+  page.tsx
+components/
+  qr-code-generator.tsx
+  ui/
+lib/
+  utils.ts
+```
+
+## Privacy
+
+QR codes are generated entirely in the browser. The app does not send QR content to a server, store user input, or require an account.
+
+## License
+
+This project is private unless you choose to publish it with a license.
