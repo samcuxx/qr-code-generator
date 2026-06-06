@@ -90,6 +90,7 @@ export function QrCodeGenerator() {
   const [copyState, setCopyState] = React.useState<
     "idle" | "copied" | "failed"
   >("idle")
+  const [sampleQrDataUrl, setSampleQrDataUrl] = React.useState("")
 
   const trimmedValue = value.trim()
   const isTooLong = value.length > MAX_CHARACTERS
@@ -167,6 +168,30 @@ export function QrCodeGenerator() {
     trimmedValue,
   ])
 
+  React.useEffect(() => {
+    let isCurrent = true
+
+    QRCode.toDataURL("QR Studio", {
+      color: {
+        dark: "#111111",
+        light: "#ffffff",
+      },
+      errorCorrectionLevel: "M",
+      margin: 1,
+      width: 240,
+    })
+      .then((dataUrl) => {
+        if (isCurrent) {
+          setSampleQrDataUrl(dataUrl)
+        }
+      })
+      .catch(() => undefined)
+
+    return () => {
+      isCurrent = false
+    }
+  }, [])
+
   async function copyPngDataUrl() {
     if (!canExport) {
       return
@@ -189,36 +214,55 @@ export function QrCodeGenerator() {
   }
 
   return (
-    <div className="grid gap-3 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start">
-      <Card size="sm" className="rounded-lg lg:sticky lg:top-5">
+    <div className="grid gap-3 lg:grid-cols-[minmax(0,330px)_minmax(0,1fr)] lg:items-start">
+      <Card
+        size="sm"
+        className="rounded-2xl border-white/70 bg-white/90 shadow-xl ring-0 shadow-slate-200/50 backdrop-blur lg:sticky lg:top-5 dark:border-border dark:bg-card dark:shadow-none"
+      >
         <CardHeader className="border-b pb-3">
           <CardTitle>Preview</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex aspect-square min-h-56 items-center justify-center rounded-lg border bg-card p-3 shadow-inner sm:min-h-72">
+          <div className="relative flex aspect-[1.02] min-h-56 items-center justify-center overflow-hidden rounded-2xl border bg-[linear-gradient(180deg,#eef7ff_0%,#ffffff_62%,#f8fafc_100%)] p-4 sm:min-h-72 dark:bg-card dark:bg-none">
             {pngDataUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={pngDataUrl}
-                alt="Generated QR code preview"
-                className="max-h-full max-w-full rounded-md shadow-sm"
-              />
+              <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={pngDataUrl}
+                  alt="Generated QR code preview"
+                  className="size-48 max-h-full max-w-full rounded-md sm:size-56"
+                />
+              </div>
             ) : (
-              <div className="flex max-w-48 flex-col items-center gap-2 text-center text-muted-foreground">
-                <div className="flex size-10 items-center justify-center rounded-lg border bg-background">
-                  <QrCodeIcon className="size-5" />
+              <div className="flex flex-col items-center gap-4 text-center">
+                <div className="relative">
+                  <div className="absolute top-8 -left-10 rounded-full border bg-white/95 px-3 py-1 text-[0.65rem] font-medium text-muted-foreground shadow-sm dark:bg-card">
+                    LINK
+                  </div>
+                  <div className="absolute -right-10 bottom-8 rounded-full border bg-white/95 px-3 py-1 text-[0.65rem] font-medium text-muted-foreground shadow-sm dark:bg-card">
+                    TEXT
+                  </div>
+                  <div className="rounded-2xl bg-white p-5 shadow-xl ring-1 shadow-blue-100/70 ring-slate-200 dark:shadow-none">
+                    {sampleQrDataUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={sampleQrDataUrl}
+                        alt=""
+                        className="size-36 rounded-md sm:size-44"
+                      />
+                    ) : (
+                      <QrCodeIcon className="size-28 text-foreground" />
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground">
-                    Add content
-                  </p>
-                  <p className="text-xs">Your QR preview will appear here.</p>
-                </div>
+                <p className="text-sm font-medium text-foreground">
+                  Create QR Codes
+                </p>
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-[2.5rem_1fr_1fr] gap-2">
             <Tooltip>
               <TooltipTrigger
                 render={
@@ -228,15 +272,11 @@ export function QrCodeGenerator() {
                     disabled={!canExport}
                     onClick={copyPngDataUrl}
                     aria-label="Copy PNG data URL"
+                    className="h-10 rounded-xl"
                   />
                 }
               >
-                {copyState === "copied" ? (
-                  <CheckIcon data-icon="inline-start" />
-                ) : (
-                  <ClipboardIcon data-icon="inline-start" />
-                )}
-                Copy
+                {copyState === "copied" ? <CheckIcon /> : <ClipboardIcon />}
               </TooltipTrigger>
               <TooltipContent>
                 {copyState === "failed"
@@ -249,6 +289,7 @@ export function QrCodeGenerator() {
               variant="outline"
               disabled={!canExport}
               onClick={() => downloadDataUrl(pngDataUrl, "qr-code.png")}
+              className="h-10 rounded-xl"
             >
               <DownloadSimpleIcon data-icon="inline-start" />
               PNG
@@ -259,6 +300,7 @@ export function QrCodeGenerator() {
               onClick={() =>
                 downloadFile(svgMarkup, "qr-code.svg", "image/svg+xml")
               }
+              className="h-10 rounded-xl shadow-sm"
             >
               <DownloadSimpleIcon data-icon="inline-start" />
               SVG
@@ -271,7 +313,10 @@ export function QrCodeGenerator() {
         </CardContent>
       </Card>
 
-      <Card size="sm" className="rounded-lg">
+      <Card
+        size="sm"
+        className="rounded-2xl border-white/70 bg-white/90 shadow-xl ring-0 shadow-slate-200/50 backdrop-blur dark:border-border dark:bg-card dark:shadow-none"
+      >
         <CardHeader className="border-b pb-3">
           <CardTitle>Create</CardTitle>
         </CardHeader>
@@ -292,8 +337,8 @@ export function QrCodeGenerator() {
               id="qr-value"
               value={value}
               onChange={(event) => setValue(event.target.value)}
-              placeholder="Paste a link or text"
-              className="min-h-20 resize-none leading-relaxed sm:min-h-24"
+              placeholder="Enter your text..."
+              className="min-h-16 resize-none rounded-2xl border-transparent bg-muted/70 leading-relaxed shadow-inner focus-visible:border-primary/40 sm:min-h-20"
               aria-invalid={isTooLong || undefined}
             />
             {generationError ? (
@@ -310,7 +355,7 @@ export function QrCodeGenerator() {
                 variant="ghost"
                 size="sm"
                 onClick={resetDefaults}
-                className="h-7"
+                className="h-7 rounded-full px-2"
               >
                 <ArrowClockwiseIcon data-icon="inline-start" />
                 Reset
@@ -325,13 +370,13 @@ export function QrCodeGenerator() {
                     type="color"
                     value={foreground}
                     onChange={(event) => setForeground(event.target.value)}
-                    className="h-9 w-12 shrink-0 p-1"
+                    className="h-9 w-12 shrink-0 rounded-xl p-1"
                     aria-label="Foreground color"
                   />
                   <Input
                     value={foreground}
                     onChange={(event) => setForeground(event.target.value)}
-                    className="h-9 font-mono text-sm uppercase"
+                    className="h-9 rounded-xl bg-muted/60 font-mono text-sm uppercase"
                     aria-label="Foreground hex value"
                   />
                 </div>
@@ -344,13 +389,13 @@ export function QrCodeGenerator() {
                     type="color"
                     value={background}
                     onChange={(event) => setBackground(event.target.value)}
-                    className="h-9 w-12 shrink-0 p-1"
+                    className="h-9 w-12 shrink-0 rounded-xl p-1"
                     aria-label="Background color"
                   />
                   <Input
                     value={background}
                     onChange={(event) => setBackground(event.target.value)}
-                    className="h-9 font-mono text-sm uppercase"
+                    className="h-9 rounded-xl bg-muted/60 font-mono text-sm uppercase"
                     aria-label="Background hex value"
                   />
                 </div>
@@ -405,7 +450,10 @@ export function QrCodeGenerator() {
                 setErrorCorrection(nextValue as QRCodeErrorCorrectionLevel)
               }
             >
-              <SelectTrigger id="error-correction" className="h-9 w-full">
+              <SelectTrigger
+                id="error-correction"
+                className="h-9 w-full rounded-xl bg-muted/60"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger>
