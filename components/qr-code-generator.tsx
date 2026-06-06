@@ -11,13 +11,7 @@ import {
 import QRCode, { type QRCodeErrorCorrectionLevel } from "qrcode"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -195,165 +189,13 @@ export function QrCodeGenerator() {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]">
-      <Card className="rounded-lg">
-        <CardHeader className="border-b">
-          <CardTitle>QR details</CardTitle>
-          <CardDescription>
-            Add the content and adjust the output before exporting.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <Label htmlFor="qr-value">Content</Label>
-              <span
-                className={cn(
-                  "text-xs text-muted-foreground",
-                  isTooLong && "text-destructive"
-                )}
-              >
-                {value.length}/{MAX_CHARACTERS}
-              </span>
-            </div>
-            <Textarea
-              id="qr-value"
-              value={value}
-              onChange={(event) => setValue(event.target.value)}
-              placeholder="Paste a URL, message, email address, or any text..."
-              className="min-h-36 resize-none leading-relaxed"
-              aria-invalid={isTooLong || undefined}
-            />
-            {generationError ? (
-              <p className="text-sm text-destructive">{generationError}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                QR codes work best with concise text or links.
-              </p>
-            )}
-          </div>
-
-          <Separator />
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="foreground">Foreground</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="foreground"
-                  type="color"
-                  value={foreground}
-                  onChange={(event) => setForeground(event.target.value)}
-                  className="h-9 w-12 shrink-0 p-1"
-                  aria-label="Foreground color"
-                />
-                <Input
-                  value={foreground}
-                  onChange={(event) => setForeground(event.target.value)}
-                  className="h-9 font-mono text-sm uppercase"
-                  aria-label="Foreground hex value"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="background">Background</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="background"
-                  type="color"
-                  value={background}
-                  onChange={(event) => setBackground(event.target.value)}
-                  className="h-9 w-12 shrink-0 p-1"
-                  aria-label="Background color"
-                />
-                <Input
-                  value={background}
-                  onChange={(event) => setBackground(event.target.value)}
-                  className="h-9 font-mono text-sm uppercase"
-                  aria-label="Background hex value"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <Label htmlFor="qr-size">Size</Label>
-                <span className="font-mono text-xs text-muted-foreground">
-                  {size}px
-                </span>
-              </div>
-              <Slider
-                id="qr-size"
-                value={[size]}
-                min={180}
-                max={640}
-                step={20}
-                onValueChange={(nextValue) =>
-                  setSize(getSliderValue(nextValue, 320))
-                }
-              />
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <Label htmlFor="qr-margin">Margin</Label>
-                <span className="font-mono text-xs text-muted-foreground">
-                  {margin}
-                </span>
-              </div>
-              <Slider
-                id="qr-margin"
-                value={[margin]}
-                min={0}
-                max={8}
-                step={1}
-                onValueChange={(nextValue) =>
-                  setMargin(getSliderValue(nextValue, 2))
-                }
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-            <div className="space-y-2">
-              <Label htmlFor="error-correction">Error correction</Label>
-              <Select
-                value={errorCorrection}
-                onValueChange={(nextValue) =>
-                  setErrorCorrection(nextValue as QRCodeErrorCorrectionLevel)
-                }
-              >
-                <SelectTrigger id="error-correction" className="h-9 w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent alignItemWithTrigger>
-                  {ERROR_CORRECTION_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <span>{option.label}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {option.description}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button variant="outline" onClick={resetDefaults} className="h-9">
-              <ArrowClockwiseIcon data-icon="inline-start" />
-              Reset
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-lg">
-        <CardHeader className="border-b">
+    <div className="grid gap-3 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start">
+      <Card size="sm" className="rounded-lg lg:sticky lg:top-5">
+        <CardHeader className="border-b pb-3">
           <CardTitle>Preview</CardTitle>
-          <CardDescription>Export your QR code as PNG or SVG.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex aspect-square min-h-72 items-center justify-center rounded-lg border bg-[linear-gradient(45deg,var(--muted)_25%,transparent_25%),linear-gradient(-45deg,var(--muted)_25%,transparent_25%),linear-gradient(45deg,transparent_75%,var(--muted)_75%),linear-gradient(-45deg,transparent_75%,var(--muted)_75%)] bg-[length:24px_24px] bg-[position:0_0,0_12px,12px_-12px,-12px_0] p-5">
+        <CardContent className="space-y-3">
+          <div className="flex aspect-square min-h-56 items-center justify-center rounded-lg border bg-card p-3 shadow-inner sm:min-h-72">
             {pngDataUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -362,17 +204,15 @@ export function QrCodeGenerator() {
                 className="max-h-full max-w-full rounded-md shadow-sm"
               />
             ) : (
-              <div className="flex max-w-56 flex-col items-center gap-3 text-center text-muted-foreground">
-                <div className="flex size-12 items-center justify-center rounded-lg border bg-background">
-                  <QrCodeIcon className="size-6" />
+              <div className="flex max-w-48 flex-col items-center gap-2 text-center text-muted-foreground">
+                <div className="flex size-10 items-center justify-center rounded-lg border bg-background">
+                  <QrCodeIcon className="size-5" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-foreground">
-                    Waiting for content
+                    Add content
                   </p>
-                  <p className="text-sm">
-                    Enter text or a link to generate a scannable QR code.
-                  </p>
+                  <p className="text-xs">Your QR preview will appear here.</p>
                 </div>
               </div>
             )}
@@ -426,10 +266,160 @@ export function QrCodeGenerator() {
           </div>
 
           {copyState === "copied" ? (
-            <p className="text-center text-sm text-muted-foreground">
-              PNG data URL copied to clipboard.
-            </p>
+            <p className="text-center text-sm text-muted-foreground">Copied.</p>
           ) : null}
+        </CardContent>
+      </Card>
+
+      <Card size="sm" className="rounded-lg">
+        <CardHeader className="border-b pb-3">
+          <CardTitle>Create</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="qr-value">Content</Label>
+              <span
+                className={cn(
+                  "text-xs text-muted-foreground",
+                  isTooLong && "text-destructive"
+                )}
+              >
+                {value.length}/{MAX_CHARACTERS}
+              </span>
+            </div>
+            <Textarea
+              id="qr-value"
+              value={value}
+              onChange={(event) => setValue(event.target.value)}
+              placeholder="Paste a link or text"
+              className="min-h-20 resize-none leading-relaxed sm:min-h-24"
+              aria-invalid={isTooLong || undefined}
+            />
+            {generationError ? (
+              <p className="text-sm text-destructive">{generationError}</p>
+            ) : null}
+          </div>
+
+          <Separator />
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium">Colors</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetDefaults}
+                className="h-7"
+              >
+                <ArrowClockwiseIcon data-icon="inline-start" />
+                Reset
+              </Button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="foreground">Foreground</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="foreground"
+                    type="color"
+                    value={foreground}
+                    onChange={(event) => setForeground(event.target.value)}
+                    className="h-9 w-12 shrink-0 p-1"
+                    aria-label="Foreground color"
+                  />
+                  <Input
+                    value={foreground}
+                    onChange={(event) => setForeground(event.target.value)}
+                    className="h-9 font-mono text-sm uppercase"
+                    aria-label="Foreground hex value"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="background">Background</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="background"
+                    type="color"
+                    value={background}
+                    onChange={(event) => setBackground(event.target.value)}
+                    className="h-9 w-12 shrink-0 p-1"
+                    aria-label="Background color"
+                  />
+                  <Input
+                    value={background}
+                    onChange={(event) => setBackground(event.target.value)}
+                    className="h-9 font-mono text-sm uppercase"
+                    aria-label="Background hex value"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="qr-size">Size</Label>
+                <span className="font-mono text-xs text-muted-foreground">
+                  {size}px
+                </span>
+              </div>
+              <Slider
+                id="qr-size"
+                value={[size]}
+                min={180}
+                max={640}
+                step={20}
+                onValueChange={(nextValue) =>
+                  setSize(getSliderValue(nextValue, 320))
+                }
+              />
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="qr-margin">Margin</Label>
+                <span className="font-mono text-xs text-muted-foreground">
+                  {margin}
+                </span>
+              </div>
+              <Slider
+                id="qr-margin"
+                value={[margin]}
+                min={0}
+                max={8}
+                step={1}
+                onValueChange={(nextValue) =>
+                  setMargin(getSliderValue(nextValue, 2))
+                }
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="error-correction">Correction</Label>
+            <Select
+              value={errorCorrection}
+              onValueChange={(nextValue) =>
+                setErrorCorrection(nextValue as QRCodeErrorCorrectionLevel)
+              }
+            >
+              <SelectTrigger id="error-correction" className="h-9 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger>
+                {ERROR_CORRECTION_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <span>{option.label}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {option.description}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
     </div>
