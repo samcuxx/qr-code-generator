@@ -50,6 +50,14 @@ npm run lint
 npm run typecheck
 ```
 
+## SEO Configuration
+
+Set the production URL before deploying so canonical links, Open Graph images, robots.txt, and sitemap.xml point to the live site:
+
+```bash
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+```
+
 ## Project Structure
 
 ```text

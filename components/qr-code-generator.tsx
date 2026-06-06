@@ -225,12 +225,12 @@ export function QrCodeGenerator() {
         <CardContent className="space-y-3">
           <div className="relative flex aspect-[1.02] min-h-56 items-center justify-center overflow-hidden rounded-2xl border bg-[linear-gradient(180deg,#eef7ff_0%,#ffffff_62%,#f8fafc_100%)] p-4 sm:min-h-72 dark:bg-card dark:bg-none">
             {pngDataUrl ? (
-              <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+              <div className="flex aspect-square w-[88%] max-w-72 items-center justify-center rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200 sm:p-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={pngDataUrl}
                   alt="Generated QR code preview"
-                  className="size-48 max-h-full max-w-full rounded-md sm:size-56"
+                  className="h-full w-full rounded-md object-contain"
                 />
               </div>
             ) : (
