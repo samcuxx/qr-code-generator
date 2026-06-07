@@ -45,6 +45,8 @@ const ERROR_CORRECTION_OPTIONS: ErrorCorrectionOption[] = [
 ]
 
 const MAX_CHARACTERS = 1200
+const FLYER_WIDTH = 1080
+const FLYER_HEIGHT = 1350
 
 function downloadFile(contents: string, fileName: string, type: string) {
   const blob = new Blob([contents], { type })
@@ -76,8 +78,85 @@ function getSliderValue(
   return Array.isArray(nextValue) ? (nextValue[0] ?? fallback) : nextValue
 }
 
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image()
+
+    image.onload = () => resolve(image)
+    image.onerror = reject
+    image.src = src
+  })
+}
+
+function drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) {
+  ctx.beginPath()
+  ctx.moveTo(x + radius, y)
+  ctx.lineTo(x + width - radius, y)
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius)
+  ctx.lineTo(x + width, y + height - radius)
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height)
+  ctx.lineTo(x + radius, y + height)
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius)
+  ctx.lineTo(x, y + radius)
+  ctx.quadraticCurveTo(x, y, x + radius, y)
+  ctx.closePath()
+}
+
+function drawCenteredText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  y: number,
+  maxWidth: number,
+  font: string,
+  color: string
+) {
+  ctx.fillStyle = color
+  ctx.font = font
+  ctx.textAlign = "center"
+  ctx.textBaseline = "middle"
+  ctx.fillText(text, FLYER_WIDTH / 2, y, maxWidth)
+}
+
+function getFlyerSourceLabel(value: string) {
+  try {
+    return new URL(value).hostname.replace(/^www\./, "")
+  } catch {
+    return "QR Studio"
+  }
+}
+
+function getFlyerDomain(value: string) {
+  try {
+    return new URL(value).hostname.replace(/^www\./, "")
+  } catch {
+    return ""
+  }
+}
+
+function getFlyerLogoText(value: string) {
+  try {
+    const hostname = new URL(value).hostname.replace(/^www\./, "")
+    const [firstPart] = hostname.split(".")
+
+    return firstPart ? firstPart.slice(0, 7).toUpperCase() : "QR"
+  } catch {
+    return "QR"
+  }
+}
+
 export function QrCodeGenerator() {
   const [value, setValue] = React.useState("")
+  const [flyerTitle, setFlyerTitle] = React.useState("Scan Me")
+  const [flyerCaption, setFlyerCaption] = React.useState(
+    "Scan the QR code below."
+  )
   const [foreground, setForeground] = React.useState("#111111")
   const [background, setBackground] = React.useState("#ffffff")
   const [size, setSize] = React.useState(320)
@@ -205,6 +284,128 @@ export function QrCodeGenerator() {
     }
   }
 
+  async function downloadFlyer() {
+    if (!canExport) {
+      return
+    }
+
+    const canvas = document.createElement("canvas")
+    const ctx = canvas.getContext("2d")
+
+    if (!ctx) {
+      return
+    }
+
+    canvas.width = FLYER_WIDTH
+    canvas.height = FLYER_HEIGHT
+
+    const qrImage = await loadImage(pngDataUrl)
+    const title = flyerTitle.trim() || "Scan Me"
+    const caption = flyerCaption.trim() || "Scan the QR code below."
+    const sourceLabel = getFlyerSourceLabel(trimmedValue)
+    const domain = getFlyerDomain(trimmedValue)
+    const logoText = getFlyerLogoText(trimmedValue)
+    const siteLogo = domain
+      ? await loadImage(`/api/site-logo?domain=${encodeURIComponent(domain)}`)
+          .then((image) => image)
+          .catch(() => null)
+      : null
+
+    const background = ctx.createLinearGradient(0, 0, FLYER_WIDTH, FLYER_HEIGHT)
+    background.addColorStop(0, "#e0f2fe")
+    background.addColorStop(0.42, "#f8fbff")
+    background.addColorStop(0.72, "#f7fff9")
+    background.addColorStop(1, "#bbf7d0")
+    ctx.fillStyle = background
+    ctx.fillRect(0, 0, FLYER_WIDTH, FLYER_HEIGHT)
+
+    const topGlow = ctx.createRadialGradient(170, 80, 20, 170, 80, 520)
+    topGlow.addColorStop(0, "rgba(20, 139, 248, 0.32)")
+    topGlow.addColorStop(1, "rgba(20, 139, 248, 0)")
+    ctx.fillStyle = topGlow
+    ctx.fillRect(0, 0, FLYER_WIDTH, FLYER_HEIGHT)
+
+    const bottomGlow = ctx.createRadialGradient(900, 1160, 20, 900, 1160, 620)
+    bottomGlow.addColorStop(0, "rgba(34, 197, 94, 0.32)")
+    bottomGlow.addColorStop(1, "rgba(34, 197, 94, 0)")
+    ctx.fillStyle = bottomGlow
+    ctx.fillRect(0, 0, FLYER_WIDTH, FLYER_HEIGHT)
+
+    ctx.save()
+    ctx.shadowColor = "rgba(15, 23, 42, 0.14)"
+    ctx.shadowBlur = 54
+    ctx.shadowOffsetY = 34
+    drawRoundedRect(ctx, 86, 210, 908, 1120, 64)
+    ctx.fillStyle = "rgba(255, 255, 255, 0.96)"
+    ctx.fill()
+    ctx.restore()
+
+    ctx.save()
+    drawRoundedRect(ctx, 366, 52, 348, 348, 174)
+    ctx.fillStyle = "#ffffff"
+    ctx.fill()
+    ctx.clip()
+    const avatarGradient = ctx.createLinearGradient(366, 52, 714, 400)
+    avatarGradient.addColorStop(0, "#148bf8")
+    avatarGradient.addColorStop(1, "#17c278")
+    ctx.fillStyle = avatarGradient
+    ctx.fillRect(366, 52, 348, 348)
+    if (siteLogo) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.94)"
+      drawRoundedRect(ctx, 412, 98, 256, 256, 128)
+      ctx.fill()
+      ctx.drawImage(siteLogo, 452, 138, 176, 176)
+    } else {
+      ctx.fillStyle = "#ffffff"
+      ctx.font = `900 ${
+        logoText.length <= 2 ? 122 : logoText.length <= 4 ? 96 : 70
+      }px Arial, sans-serif`
+      ctx.textAlign = "center"
+      ctx.textBaseline = "middle"
+      ctx.fillText(logoText, 540, 226, 290)
+    }
+    ctx.restore()
+
+    drawCenteredText(
+      ctx,
+      title.slice(0, 42),
+      496,
+      790,
+      "900 72px Arial, sans-serif",
+      "#1f2937"
+    )
+    drawCenteredText(
+      ctx,
+      caption.slice(0, 88),
+      574,
+      780,
+      "500 32px Arial, sans-serif",
+      "#64748b"
+    )
+
+    ctx.save()
+    ctx.shadowColor = "rgba(15, 23, 42, 0.18)"
+    ctx.shadowBlur = 34
+    ctx.shadowOffsetY = 22
+    drawRoundedRect(ctx, 150, 650, 780, 680, 36)
+    ctx.fillStyle = "#ffffff"
+    ctx.fill()
+    ctx.restore()
+
+    ctx.drawImage(qrImage, 260, 704, 560, 560)
+
+    drawCenteredText(
+      ctx,
+      sourceLabel.slice(0, 38),
+      1298,
+      680,
+      "700 30px Arial, sans-serif",
+      "#94a3b8"
+    )
+
+    downloadDataUrl(canvas.toDataURL("image/png"), "qr-code-portrait-flyer.png")
+  }
+
   function resetDefaults() {
     setForeground("#111111")
     setBackground("#ffffff")
@@ -307,6 +508,16 @@ export function QrCodeGenerator() {
             </Button>
           </div>
 
+          <Button
+            type="button"
+            disabled={!canExport}
+            onClick={downloadFlyer}
+            className="h-10 rounded-xl shadow-sm"
+          >
+            <DownloadSimpleIcon data-icon="inline-start" />
+            Portrait Flyer
+          </Button>
+
           {copyState === "copied" ? (
             <p className="text-center text-sm text-muted-foreground">Copied.</p>
           ) : null}
@@ -344,6 +555,31 @@ export function QrCodeGenerator() {
             {generationError ? (
               <p className="text-sm text-destructive">{generationError}</p>
             ) : null}
+          </div>
+
+          <Separator />
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="flyer-title">Flyer title</Label>
+              <Input
+                id="flyer-title"
+                value={flyerTitle}
+                maxLength={42}
+                onChange={(event) => setFlyerTitle(event.target.value)}
+                className="h-9 rounded-xl bg-muted/60"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="flyer-caption">Caption</Label>
+              <Input
+                id="flyer-caption"
+                value={flyerCaption}
+                maxLength={88}
+                onChange={(event) => setFlyerCaption(event.target.value)}
+                className="h-9 rounded-xl bg-muted/60"
+              />
+            </div>
           </div>
 
           <Separator />
